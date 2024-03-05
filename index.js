@@ -51,7 +51,7 @@ const start = async () => {
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
                 // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
                 await bot.sendSticker(chatId, './img/start.png')
-                await bot.sendMessage(chatId, "Assalomu alekum")
+                await bot.sendMessage(chatId, `Assalomu alekum ${msg.from.first_name}`)
                 return bot.sendAudio(chatId, './audio/music.mp3');
             }
             if(text === '/info'){
@@ -77,7 +77,7 @@ const start = async () => {
         const chatId = msg.message.chat.id
         try {
             if(data === '/again') {
-                // await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteMessage(chatId, msg.message.message_id)
                 return startGame(chatId)
             }
             if(data === '/stop') {
@@ -89,11 +89,13 @@ const start = async () => {
                 await bot.sendSticker(chatId, './img/right.png')
                 await bot.sendMessage(chatId, `Tabriklayman siz men o'ylagan ${chats[chatId]} sonini topdingiz 🎉`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteChatStickerSet(chatId)
             } else {
                 user.wrong += 1 
                 await bot.sendSticker(chatId, './img/wrong.png')
                 await bot.sendMessage(chatId, `Afsuskiy siz men o'ylagan ${chats[chatId]} sonini topa olmadingiz`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteChatStickerSet(chatId)
             }
             await User.findByIdAndUpdate(user._id, user, {new: true})
         } catch (error) {
