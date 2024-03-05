@@ -77,7 +77,7 @@ const start = async () => {
         const chatId = msg.message.chat.id
         try {
             if(data === '/again') {
-                await bot.deleteMessage(chatId, msg.message.message_id)
+                // await bot.deleteMessage(chatId, msg.message.message_id)
                 return startGame(chatId)
             }
             if(data === '/stop') {
@@ -88,12 +88,12 @@ const start = async () => {
                 user.right += 1 
                 await bot.sendSticker(chatId, './img/right.png')
                 await bot.sendMessage(chatId, `Tabriklayman siz men o'ylagan ${chats[chatId]} sonini topdingiz 🎉`, againOption)
-                // await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteMessage(chatId, msg.message.message_id)
             } else {
                 user.wrong += 1 
                 await bot.sendSticker(chatId, './img/wrong.png')
                 await bot.sendMessage(chatId, `Afsuskiy siz men o'ylagan ${chats[chatId]} sonini topa olmadingiz`, againOption)
-                // await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteMessage(chatId, msg.message.message_id)
             }
             await User.findByIdAndUpdate(user._id, user, {new: true})
         } catch (error) {
