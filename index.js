@@ -50,12 +50,13 @@ const start = async () => {
                 // const photo = './img/photo.jpg'
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
                 // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
-                await bot.sendSticker(chatId, './img/image.png')
+                await bot.sendSticker(chatId, './img/start.png')
                 await bot.sendMessage(chatId, "Assalomu alekum")
                 return bot.sendAudio(chatId, './audio/music.mp3');
             }
             if(text === '/info'){
                 const user = await User.findOne({chatId})
+                await bot.sendSticker(chatId, './img/image.png')
                 return bot.sendMessage(chatId, `Sizda ${user.right} ta to'g'ri javob va ${user.wrong} ta noto'g'ri javob mavjud !`)
             }
             if(text === '/setting'){
@@ -85,12 +86,16 @@ const start = async () => {
             const user = await User.findOne({chatId})
             if(data == chats[chatId]){
                 user.right += 1 
+                await bot.sendSticker(chatId, './img/right.png')
                 await bot.sendMessage(chatId, `Tabriklayman siz men o'ylagan ${chats[chatId]} sonini topdingiz 🎉`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteChatStickerSet(chatId, msg.message.message_id)
             } else {
                 user.wrong += 1 
+                await bot.sendSticker(chatId, './img/wrong.png')
                 await bot.sendMessage(chatId, `Afsuskiy siz men o'ylagan ${chats[chatId]} sonini topa olmadingiz`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
+                await bot.deleteChatStickerSet(chatId, msg.message.message_id)
             }
             await User.findByIdAndUpdate(user._id, user, {new: true})
         } catch (error) {
