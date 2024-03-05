@@ -1,4 +1,11 @@
 module.exports = {
+    startOption: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{text: 'UZB', callback_data: 'uz'}, {text: 'RUS', callback_data: 'ru'} ,{text: 'ENG', callback_data: 'en'}]
+            ]
+        })
+    },
     gameOption: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
@@ -12,7 +19,7 @@ module.exports = {
     againOption: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
-                [{text: 'Boshidan boshlash', callback_data: '/again'}],
+                [{text: 'Boshidan boshlash', callback_data: '/again'}, {text: 'Toxtatish', callback_data: '/stop'}],
             ]
         })
     }
