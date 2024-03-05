@@ -49,7 +49,8 @@ const start = async () => {
 
                 // const photo = './img/photo.jpg'
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
-                await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
+                // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
+                await bot.sendSticker(chatId, './img/image.png')
                 await bot.sendMessage(chatId, "Assalomu alekum")
                 return bot.sendAudio(chatId, './audio/music.mp3');
             }
