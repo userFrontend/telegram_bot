@@ -2,7 +2,7 @@ module.exports = {
     startOption: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
-                [{text: 'UZB', callback_data: 'uz'}, {text: 'RUS', callback_data: 'ru'} ,{text: 'ENG', callback_data: 'en'}]
+                [{text: 'UZB', callback_data: 'uz'}, {text: 'RUS', callback_data: 'ru'} ,{text: 'ENG', callback_data: 'eng'}]
             ]
         })
     },
@@ -19,7 +19,7 @@ module.exports = {
     againOption: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
-                [{text: 'Boshidan boshlash', callback_data: '/again'}, {text: 'Toxtatish', callback_data: '/stop'}],
+                [{text: '🔄', callback_data: '/again'}, {text: '❌', callback_data: '/stop'}],
             ]
         })
     }

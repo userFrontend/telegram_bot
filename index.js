@@ -1,30 +1,22 @@
+const db = require('./src/db')
+const User = require('./src/models')
+const downloadApi = require('./src/request')
+const changeLang = require('./language')
 const TelegramApi =  require('node-telegram-bot-api')
-const token = '7022406574:AAFcS6sXs8aJYaDQ8PnJvJMmWGTIGD39xMM'
-const {gameOption, againOption, startOption} = require('./options')
-const bot = new TelegramApi(token, {polling: true});
-const User = require('./models')
-const db = require('./db')
+const {gameOption, againOption, startOption} = require('./src/options')
+require('dotenv').config()
 
+//get
+const token = process.env.TELEGRAM_API;
 const chats = {}
+const bot = new TelegramApi(token, {polling: true});
 
-const lang = {}
-
-const language = {
-    uz:{
-        start: 'Assalomu alekem'
-    },
-    ru:{
-        start: 'Assalomu alekem'
-    },
-    eng:{
-        start: 'Assalomu alekem'
-    },
-}
+let lang = changeLang('ru')
 
 const startGame = async (chatId) => {
     const randomNumber = Math.floor(Math.random(1) * 100)
     chats[chatId] = randomNumber;
-    await bot.sendMessage(chatId, "Men 1 dan 100 gacha 1 ta sonni o'yladim.Siz shu sonni 6 ta urunishda topishingiz kerak bo'ladi.Tayyor bo'lsangiz boshlang.", againOption)
+    await bot.sendMessage(chatId, `${lang.startGame}`, againOption)
 }
 
 let root = 0;
@@ -35,30 +27,25 @@ addCount = async (chatId) => {
       root = 0
       user.wrong += 1
       await User.findByIdAndUpdate(user._id, user, {new: true})
-      return await bot.sendMessage(chatId, "Limit tugadi siz yutqazdingiz 🧐" +
-        " Men o'ylagan son: " +
-        "[" +
-        chats[chatId] +
-        "]" +
-        " edi", againOption)
-      
+      return await bot.sendMessage(chatId, `${lang.gameOver}  [${chats[chatId]}]`, againOption)
     }
   };
 
 const start = async () => {
+
     bot.setMyCommands([
-        {command: '/start', description: 'Boshlash'},
-        {command: '/setting', description: 'Sozlamalar'},
-        {command: '/game', description: 'O\'yinni boshlash'},
-        {command: '/info', description: 'O\'yin natijalari'},
+        {command: '/start', description: `${lang.commands.start}`},
+        {command: '/setting', description: `${lang.commands.setting}`},
+        {command: '/game', description: `${lang.commands.game}`},
+        {command: '/info', description: `${lang.commands.info}`},
     ])
-
-
     
     bot.on('message', async msg => {
         const text = msg.text;
         const chatId = msg.chat.id;
         try {
+            const user = await User.findOne({chatId})
+            lang = changeLang(msg.from.language_code)
             if(text === '/start'){
                 const user = await User.findOne({chatId})
                 if(!user){
@@ -70,13 +57,11 @@ const start = async () => {
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
                 // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
                 await bot.sendSticker(chatId, './img/start.png')
-                await bot.sendMessage(chatId, `Assalomu alekum ${msg.from.first_name}`)
+                await bot.sendMessage(chatId, `${lang.start} ${msg.from.first_name}`)
                 return bot.sendAudio(chatId, './audio/music.mp3');
             }
-            const user = await User.findOne({chatId})
             if(text === '/info'){
-                
-                return bot.sendMessage(chatId, `Sizda ${user.right} ta to'g'ri javob va ${user.wrong} ta noto'g'ri javob mavjud !`)
+                return bot.sendMessage(chatId, `${lang.right} <b>${user.right}</b>  ${lang.wrong} <b>${user.wrong}</b>`, {parse_mode: 'HTML'})
             }
             if(text === '/setting'){
                 return bot.sendMessage(chatId, `Sozlamalar mavjud emas !`)
@@ -88,24 +73,40 @@ const start = async () => {
                 await bot.sendMessage(chatId, "Son kiriting🚫:");
                 return addCount(chatId)
               } else if (text * 1 > 100 || text * 1 < 0) {
-                  await bot.sendMessage(chatId, "1 dan 100 gacha oraliqdagi sonlarni kiriting! 🚫");
+                  await bot.sendMessage(chatId, `${lang.infoGame}`);
                   return addCount(chatId)
               } else if (text * 1 == chats[chatId]) {
                 root = 0
                 user.right += 1
                 await User.findByIdAndUpdate(user._id, user, {new: true})
-                return bot.sendMessage(chatId, "Tabriklaymiz siz to'g'ri toptingiz 🎉", againOption)
+                return bot.sendMessage(chatId, `${lang.success}`, againOption)
               } else if (text * 1 > chats[chatId]) {
-                  await bot.sendMessage(chatId, "Siz kiritgan son men o'ylagan sondan katta! 😏")
+                  await bot.sendMessage(chatId, `${lang.nextGame}`)
                   return addCount(chatId)
               } else if (text * 1 < chats[chatId]) {
-                  await bot.sendMessage(chatId, "Siz kiritgan son men o'ylagan sondan kichik! 🙃")
+                  await bot.sendMessage(chatId, `${lang.prevGame}`)
                   return addCount(chatId)
-              }
-            return bot.sendMessage(chatId, 'Texnik sabablarga ko\'ra bot vaqtincha ishlamaydi')
+            }
+            if (msg.text !== '/start' && msg.text.includes('https://www.instagram.com/')) {
+                await bot.sendMessage(chatId, `${lang.loading}`)
+                const post = await downloadApi(msg.text)
+                if (post) {
+                    if (post.type === 'image') {
+                        return bot.sendPhoto(chatId, post.link, {caption: post.caption + '\n Telegram bot @WebCourseBot'});
+                    }
+                    else if (post.type === 'video') {
+                        return bot.sendVideo(chatId, post.link, {caption: post.caption + '\n Telegram bot @WebCourseBot'});
+                    } else {
+                        return bot.sendMessage(chatId, `${lang.error.error}`)
+                    }  
+                } else {
+                    return bot.sendMessage(chatId, `${lang.error.infoError}`)
+                }
+            }
+            return bot.sendMessage(chatId, `{} ....`)
         } catch (error) {
             console.log(error.message);
-            return bot.sendMessage(chatId, 'Nomalum xatolik yuz berdi' )
+            return bot.sendMessage(chatId, `${lang.error.borError}` )
         }
     })
 
@@ -135,7 +136,7 @@ const start = async () => {
             await User.findByIdAndUpdate(user._id, user, {new: true})
         } catch (error) {
             console.log(error.message);
-            await bot.sendMessage(chatId, 'Iltimos ko\'ting kichik nosozlik yuz berdi')
+            await bot.sendMessage(chatId, `${lang.error.botError}`)
         }
     })
 }
