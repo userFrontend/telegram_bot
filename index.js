@@ -22,10 +22,28 @@ const language = {
 }
 
 const startGame = async (chatId) => {
-    const randomNumber = Math.floor(Math.random() * 10)
+    const randomNumber = Math.floor(Math.random(1) * 100)
     chats[chatId] = randomNumber;
-    await bot.sendMessage(chatId, 'Men hozir 0 dan 9 gacha raqam o\'yladim siz uni topishingiz kerak', gameOption)
+    await bot.sendMessage(chatId, "Men 1 dan 100 gacha 1 ta sonni o'yladim.Siz shu sonni 6 ta urunishda topishingiz kerak bo'ladi.Tayyor bo'lsangiz boshlang.", againOption)
 }
+
+let root = 0;
+addCount = async (chatId) => {
+    const user = await User.findOne({chatId})
+    root += 1;
+    if (root >= 6) {
+      root = 0
+      user.wrong += 1
+      await User.findByIdAndUpdate(user._id, user, {new: true})
+      return await bot.sendMessage(chatId, "Limit tugadi siz yutqazdingiz 🧐" +
+        " Men o'ylagan son: " +
+        "[" +
+        chats[chatId] +
+        "]" +
+        " edi", againOption)
+      
+    }
+  };
 
 const start = async () => {
     bot.setMyCommands([
@@ -34,6 +52,7 @@ const start = async () => {
         {command: '/game', description: 'O\'yinni boshlash'},
         {command: '/info', description: 'O\'yin natijalari'},
     ])
+
 
     
     bot.on('message', async msg => {
@@ -54,9 +73,9 @@ const start = async () => {
                 await bot.sendMessage(chatId, `Assalomu alekum ${msg.from.first_name}`)
                 return bot.sendAudio(chatId, './audio/music.mp3');
             }
+            const user = await User.findOne({chatId})
             if(text === '/info'){
-                const user = await User.findOne({chatId})
-                await bot.sendSticker(chatId, './img/image.png')
+                
                 return bot.sendMessage(chatId, `Sizda ${user.right} ta to'g'ri javob va ${user.wrong} ta noto'g'ri javob mavjud !`)
             }
             if(text === '/setting'){
@@ -65,6 +84,24 @@ const start = async () => {
             if(text === '/game') {
                 return startGame(chatId)
             }
+            if (text == "") {
+                await bot.sendMessage(chatId, "Son kiriting🚫:");
+                return addCount(chatId)
+              } else if (text * 1 > 100 || text * 1 < 0) {
+                  await bot.sendMessage(chatId, "1 dan 100 gacha oraliqdagi sonlarni kiriting! 🚫");
+                  return addCount(chatId)
+              } else if (text * 1 == chats[chatId]) {
+                root = 0
+                user.right += 1
+                await User.findByIdAndUpdate(user._id, user, {new: true})
+                return bot.sendMessage(chatId, "Tabriklaymiz siz to'g'ri toptingiz 🎉", againOption)
+              } else if (text * 1 > chats[chatId]) {
+                  await bot.sendMessage(chatId, "Siz kiritgan son men o'ylagan sondan katta! 😏")
+                  return addCount(chatId)
+              } else if (text * 1 < chats[chatId]) {
+                  await bot.sendMessage(chatId, "Siz kiritgan son men o'ylagan sondan kichik! 🙃")
+                  return addCount(chatId)
+              }
             return bot.sendMessage(chatId, 'Texnik sabablarga ko\'ra bot vaqtincha ishlamaydi')
         } catch (error) {
             console.log(error.message);
@@ -77,21 +114,21 @@ const start = async () => {
         const chatId = msg.message.chat.id
         try {
             if(data === '/again') {
+                root = 0
                 await bot.deleteMessage(chatId, msg.message.message_id)
                 return startGame(chatId)
             }
             if(data === '/stop') {
+                root = 0
                 return bot.deleteMessage(chatId, msg.message.message_id)
             }
             const user = await User.findOne({chatId})
             if(data == chats[chatId]){
                 user.right += 1 
-                await bot.sendSticker(chatId, './img/right.png')
                 await bot.sendMessage(chatId, `Tabriklayman siz men o'ylagan ${chats[chatId]} sonini topdingiz 🎉`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
             } else {
                 user.wrong += 1 
-                await bot.sendSticker(chatId, './img/wrong.png')
                 await bot.sendMessage(chatId, `Afsuskiy siz men o'ylagan ${chats[chatId]} sonini topa olmadingiz`, againOption)
                 await bot.deleteMessage(chatId, msg.message.message_id)
             }
