@@ -1,10 +1,17 @@
 const db = require('./src/db')
+const express = require('express')
 const User = require('./src/models')
 const downloadApi = require('./src/request')
+const mongoose = require("mongoose")
 const changeLang = require('./language')
 const TelegramApi =  require('node-telegram-bot-api')
 const {gameOption, againOption, startOption} = require('./src/options')
+
 require('dotenv').config()
+const app = express()
+
+//Port
+const PORT = process.env.PORT || 4001;
 
 //get
 const token = process.env.TELEGRAM_API;
@@ -142,3 +149,13 @@ const start = async () => {
 }
 
 start()
+
+const startServer = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URL)
+        app.listen(PORT, () => console.log(`Server startedon on port: ${PORT}`))
+    } catch (error) {
+        console.log(error);
+    }
+}
+startServer()

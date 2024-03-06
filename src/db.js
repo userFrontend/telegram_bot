@@ -9,7 +9,7 @@ dotenv.config()
 const PORT = process.env.PORT || 4001;
 
 
-const start = async () => {
+const startServer = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URL)
         app.listen(PORT, () => console.log(`Server startedon on port: ${PORT}`))
@@ -17,4 +17,4 @@ const start = async () => {
         console.log(error);
     }
 }
-start()
+startServer()
