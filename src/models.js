@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        user: {
+            type: Object,
+            required: true
+        },
         right: {
             type: Number,
             default: 0

@@ -1,17 +1,10 @@
-const db = require('./src/db')
-const express = require('express')
 const User = require('./src/models')
 const downloadApi = require('./src/request')
-const mongoose = require("mongoose")
-const changeLang = require('./language')
+const startServer = require('./src/db')
+const changeLang = require('./src/language')
 const TelegramApi =  require('node-telegram-bot-api')
 const {gameOption, againOption, startOption} = require('./src/options')
-
 require('dotenv').config()
-const app = express()
-
-//Port
-const PORT = process.env.PORT || 4001;
 
 //get
 const token = process.env.TELEGRAM_API;
@@ -39,7 +32,7 @@ addCount = async (chatId) => {
   };
 
 const start = async () => {
-
+    startServer()
     bot.setMyCommands([
         {command: '/start', description: `${lang.commands.start}`},
         {command: '/setting', description: `${lang.commands.setting}`},
@@ -56,16 +49,15 @@ const start = async () => {
             if(text === '/start'){
                 const user = await User.findOne({chatId})
                 if(!user){
-                    (await User.create({chatId})).save()
+                    (await User.create({chatId, lang: msg.from.language_code, user: msg.chat})).save()
                 }
+                await bot.sendSticker(chatId, './img/start.png')
+                return await bot.sendMessage(chatId, `${lang.start} ${msg.from.first_name}`)
                 // return bot.sendMessage(chatId, "Tilni tanlang", startOption)
-
                 // const photo = './img/photo.jpg'
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
                 // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
-                await bot.sendSticker(chatId, './img/start.png')
-                await bot.sendMessage(chatId, `${lang.start} ${msg.from.first_name}`)
-                return bot.sendAudio(chatId, './audio/music.mp3');
+                // return bot.sendAudio(chatId, './audio/music.mp3');
             }
             if(text === '/info'){
                 return bot.sendMessage(chatId, `${lang.right} <b>${user.right}</b>  ${lang.wrong} <b>${user.wrong}</b>`, {parse_mode: 'HTML'})
@@ -149,13 +141,3 @@ const start = async () => {
 }
 
 start()
-
-const startServer = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URL)
-        app.listen(PORT, () => console.log(`Server startedon on port: ${PORT}`))
-    } catch (error) {
-        console.log(error);
-    }
-}
-startServer()
