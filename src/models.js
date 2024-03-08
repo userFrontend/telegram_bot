@@ -10,6 +10,14 @@ const userSchema = new mongoose.Schema(
             type: Object,
             required: true
         },
+        contact: {
+            type: Object,
+            default: {}
+        },
+        voice: {
+            type: Object,
+            default: {}
+        },
         right: {
             type: Number,
             default: 0
@@ -21,7 +29,7 @@ const userSchema = new mongoose.Schema(
         lang: {
             type: String,
             default: 'uz',
-            enam: ['uz', 'ru', 'eng']
+            enam: ['uz', 'ru', 'en']
         }
     },
     {timestamps: true}   
