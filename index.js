@@ -22,7 +22,7 @@ const perPage = 5
 const page = iPage
 let gameIsStarted = false
 let textVoice = false
-let lang = {}
+let lang = changeLang('ru')
 
 
 const start = async () => {
@@ -31,8 +31,11 @@ const start = async () => {
     bot.on('message', async msg => {
         const text = msg.text;
         const chatId = msg.chat.id;
-        const user = await User.findOne({chatId}) 
-        lang = changeLang(user.lang)
+
+        const user = await User.findOne({chatId})
+        if(user){
+            lang = changeLang(user.lang)
+        }
 
         //Functions
         const startGame = async (chatId) => {
@@ -106,6 +109,16 @@ const start = async () => {
                 // await bot.sendPhoto(chatId, photo, {caption: "I'm a bot!"});
                 // await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/175/10e/17510e63-2d89-41ec-a18c-1e3351dd42b1/4.webp')
                 // return bot.sendAudio(chatId, './audio/music.mp3');
+            }
+            if(msg.contact){
+                user.contact = msg.contact
+                await bot.sendMessage(chatId, 'Ваша даних сохранино !', {                
+                    reply_markup: {
+                        remove_keyboard: true
+                    }
+                    
+                });
+                return await User.findByIdAndUpdate(user._id, user, {new: true})
             }
             if(text === '/info' || text === `🔐 ${lang.commands.info}`){
                 return bot.sendMessage(chatId, `${lang.right} <b>${user.right}</b>  ${lang.wrong} <b>${user.wrong}</b>`, {parse_mode: 'HTML'})
@@ -197,16 +210,6 @@ const start = async () => {
                     return bot.sendMessage(chatId, `${lang.error.infoError}`)
                 }
             } 
-            if(msg.contact){
-                user.contact = msg.contact
-                await bot.sendMessage(chatId, 'Ваша даних сохранино !', {                
-                    reply_markup: {
-                        remove_keyboard: true
-                    }
-                    
-                });
-                return await User.findByIdAndUpdate(user._id, user, {new: true})
-            }
             if(text == `❌ ${lang.menu.close}`) {
                 return await bot.sendMessage(msg.chat.id, `${lang.menu.close}`, {
                     reply_markup: {
